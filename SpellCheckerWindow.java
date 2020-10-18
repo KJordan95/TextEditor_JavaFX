@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.util.Optional;
 import java.util.Scanner;
 
 import javafx.application.Application;
@@ -8,6 +9,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -19,13 +21,15 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class SpellCheckerWindow extends Application {
-    SpellChecker spellChecker = new SpellChecker();
+    private SpellChecker spellChecker = new SpellChecker();
     private String fileLoadedInTextArea = "";
+    private final String regexForSeperatingText = "[,\\s\\.\\?]+";
 
     @Override
     public void start(Stage stage) {
         MenuBar menuBar = new MenuBar();
         TextArea area = new TextArea();
+        area.setWrapText(true);
 
         // Create menus
         Menu fileMenu = new Menu("File");
@@ -64,7 +68,6 @@ public class SpellCheckerWindow extends Application {
 
         // event to open the file using a file chooser dialog
         openFileItem.setOnAction(new EventHandler<ActionEvent>() {
-
             @Override
             public void handle(ActionEvent event) {
                 File file = fc.showOpenDialog(stage);
@@ -117,9 +120,8 @@ public class SpellCheckerWindow extends Application {
 
     private MenuItem createExitItem() {
         MenuItem exitItem = new MenuItem("Exit");
-        // Set Accelerator for Exit MenuItem.
         exitItem.setAccelerator(KeyCombination.keyCombination("Ctrl+X"));
-        // When user click on the Exit item
+
         exitItem.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
@@ -132,32 +134,45 @@ public class SpellCheckerWindow extends Application {
 
     private MenuItem createSpellCheckerEditItem(Stage stage, TextArea area) {
         MenuItem spellCheckEditItem = new MenuItem("Spell Check");
+        spellCheckEditItem.setAccelerator(KeyCombination.keyCombination("Ctrl+Space"));
+
         spellCheckEditItem.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
                 try {
+                    int foundSuggestions = 0;
                     String wordsInTextArea = area.getText();
                     String possibleWords = "";
 
-                    String[] splitArray = wordsInTextArea.split("\\s+");
+                    String[] splitArray = wordsInTextArea.split(regexForSeperatingText);
                     for (int i = 0; i < splitArray.length; ++i) {
                         // show dialog of possible words if the word is not in the dictionary
                         if (!spellChecker.isWordInDictionary(splitArray[i])) {
                             possibleWords = "";
-                            // TODO: Implement Spell Check
-                            //TODO: RETURN ONLY STRING TO "possibleWords", NOT LIST
-                            possibleWords = spellChecker.checkForMissingLetter(splitArray[i]).toString();
-                            Alert alert = new Alert(AlertType.CONFIRMATION);
-                            alert.setTitle("Suggested Words");
-                            alert.setHeaderText("Possible Words For \"" + splitArray[i] + "\": ");
-                            alert.setContentText(possibleWords);
-                            alert.showAndWait();
+                            possibleWords = spellChecker.allPossibleWordsMutations(splitArray[i].toString());
+
+                            if (possibleWords.length() > 0) {
+                                foundSuggestions++;
+                            }
+
+                            //show dialog with list of suggested words
+                            if (foundSuggestions > 0 && possibleWords.length() > 0) {
+                                Alert alert = new Alert(AlertType.CONFIRMATION);
+                                alert.setTitle("Suggested Words");
+                                alert.setHeaderText("Possible Words For \"" + splitArray[i] + "\": ");
+                                alert.setContentText(possibleWords);
+                                Optional<ButtonType> result = alert.showAndWait();
+                                // if user presses cancel button in alert dialog, stop the spell check
+                                if (result.get() == ButtonType.CANCEL) {
+                                    break;
+                                }
+                            }
                         }
                     }
 
                     // if no suggestions were found, notify the user with a dialog
-                    if (possibleWords.isEmpty()) {
+                    if (foundSuggestions == 0) {
                         Alert alert = new Alert(AlertType.CONFIRMATION);
                         alert.setTitle("Suggested Words");
                         alert.setHeaderText("No Suggestions Found");
@@ -188,7 +203,7 @@ public class SpellCheckerWindow extends Application {
     public static void main(String[] args) {
         // TODO:
         // SpellChecker spellChecker = new SpellChecker();
-        // spellChecker.checkForMissingLetter("zZ");
+        // spellChecker.checkForRevesedLetters("hello");
         // System.exit(0);
         Application.launch(args);
     }

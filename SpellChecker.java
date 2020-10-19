@@ -1,3 +1,12 @@
+
+/**
+ * Class creates the dictionary and searches through it
+ * for words based on mutations of misspelled words.
+ * 
+ * @author Kameron Jordan
+ * COP 4027
+ * Project 2
+ */
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -40,13 +49,15 @@ public class SpellChecker {
      * without having to worry about the case of the word(i.e. "Dog" and "doG" will
      * result in the same hash code as "dog" when being searched)
      * 
-     * @param str
+     * @param str - word to add to dictionary
      */
     private void addToMap(String str) {
+        // if hashcode already exits in dictionary, add word to list of that hashcode
         if (map.containsKey(str.toLowerCase().hashCode())) {
             map.get(str.toLowerCase().hashCode()).add(str);
         }
 
+        // create a new list with that hashcode
         else {
             ArrayList<String> list = new ArrayList<String>();
             list.add(str);
@@ -54,9 +65,14 @@ public class SpellChecker {
         }
     }
 
+    /**
+     * Checks if the word is missing a letter somewhere
+     * @param wordToCheck
+     * @return - list of possible words
+     */
     public ArrayList<String> checkForMissingLetter(String wordToCheck) {
         ArrayList<String> suggestedWords = new ArrayList<String>();
-        StringBuffer possibleWord;// = new StringBuffer(wordToCheck);
+        StringBuffer possibleWord;
         char letter = 'a';
 
         // dont check for words that are only one letter (i.e. 'a')
@@ -64,6 +80,7 @@ public class SpellChecker {
             return suggestedWords;
         }
 
+        //add a letter to each position in the misspelled word
         for (int i = 0; i < ALPHABET_NUMS; ++i) {
             for (int j = 0; j <= wordToCheck.length(); ++j) {
                 /**
@@ -74,34 +91,20 @@ public class SpellChecker {
                 possibleWord.insert(j, (char) (letter + i));
 
                 suggestedWords.addAll(getSuggestedListOfWords(possibleWord.toString()));
-
-                // // check if the possible word's hash code is used in the dictionary
-                // if (map.containsKey(possibleWord.toString().hashCode())) {
-                // // search the ArrayList in the Map for the word
-                // ArrayList<String> wordsWithSameHashCode =
-                // map.get(possibleWord.toString().hashCode());
-                // for (int k = 0; k < wordsWithSameHashCode.size(); ++k) {
-                // /**
-                // * only add the word to suggestion list if it matches a word in the dictionary
-                // * (regardless of case) and is not already apart of the list
-                // */
-                // if (wordsWithSameHashCode.get(k).equalsIgnoreCase(possibleWord.toString())
-                // && !(suggestedWords.contains(wordsWithSameHashCode.get(k)))) {
-                // suggestedWords.add(wordsWithSameHashCode.get(k));
-                // // System.out.print(listToUpper.get(k) + " ");
-                // // System.out.println(suggestedWords.size());
-                // }
-                // }
-                // }
             }
         }
 
         return suggestedWords;
     }
 
+    /**
+     * Checks if the word has an additional letter somewhere
+     * @param wordToCheck
+     * @return - list of possible words
+     */
     public ArrayList<String> checkForAddedLetter(String wordToCheck) {
         ArrayList<String> suggestedWords = new ArrayList<String>();
-        StringBuffer possibleWord;// = new StringBuffer(wordToCheck);
+        StringBuffer possibleWord;
 
         // dont check for words that are only one letter
         if ((wordToCheck.length() == 1)) {
@@ -117,36 +120,25 @@ public class SpellChecker {
             possibleWord.delete(j, (j + 1));
 
             suggestedWords.addAll(getSuggestedListOfWords(possibleWord.toString()));
-
-            // // check if the possible word's hash code is used in the dictionary
-            // if (map.containsKey(possibleWord.toString().hashCode())) {
-            // // search the ArrayList in the Map for the word
-            // ArrayList<String> wordsWithSameHashCode =
-            // map.get(possibleWord.toString().hashCode());
-            // for (int k = 0; k < wordsWithSameHashCode.size(); ++k) {
-            // /**
-            // * only add the word to suggestion list if it matches a word in the dictionary
-            // * (regardless of case) and is not already apart of the list
-            // */
-            // if (wordsWithSameHashCode.get(k).equalsIgnoreCase(possibleWord.toString())
-            // && !(suggestedWords.contains(wordsWithSameHashCode.get(k)))) {
-            // suggestedWords.add(wordsWithSameHashCode.get(k));
-            // }
-            // }
-            // }
         }
         return suggestedWords;
     }
 
+    /**
+     * Checks if the word has letters in reversed order
+     * @param wordToCheck
+     * @return - list of possible words
+     */
     public ArrayList<String> checkForRevesedLetters(String wordToCheck) {
         ArrayList<String> suggestedWords = new ArrayList<String>();
-        String possibleWord;// = new StringBuffer(wordToCheck);
+        String possibleWord;
 
         // dont check for words that are only one letter
         if ((wordToCheck.length() == 1)) {
             return suggestedWords;
         }
 
+        //swap chars in misspelled word
         for (int j = 0; j < wordToCheck.length() - 1; ++j) {
             /**
              * possible word is in lowercase as the words in the dictionary are hash coded
@@ -161,28 +153,15 @@ public class SpellChecker {
             possibleWord = new String(charArray);
 
             suggestedWords.addAll(getSuggestedListOfWords(possibleWord));
-
-            // // check if the possible word's hash code is used in the dictionary
-            // if (map.containsKey(possibleWord.toString().hashCode())) {
-            // // search the ArrayList in the Map for the word
-            // ArrayList<String> wordsWithSameHashCode =
-            // map.get(possibleWord.toString().hashCode());
-            // for (int k = 0; k < wordsWithSameHashCode.size(); ++k) {
-            // /**
-            // * only add the word to suggestion list if it matches a word in the dictionary
-            // * (regardless of case) and is not already apart of the list
-            // */
-            // if (wordsWithSameHashCode.get(k).equalsIgnoreCase(possibleWord.toString())
-            // && !(suggestedWords.contains(wordsWithSameHashCode.get(k)))) {
-            // suggestedWords.add(wordsWithSameHashCode.get(k));
-            // }
-            // }
-            // }
-
         }
         return suggestedWords;
     }
 
+    /**
+     * Creates an ArralyList of words from the dictionary that match the misspelled word
+     * @param possibleWord
+     * @return - list of possible words from dictionary
+     */
     private ArrayList<String> getSuggestedListOfWords(String possibleWord) {
         ArrayList<String> suggestedWords = new ArrayList<String>();
 
@@ -205,10 +184,16 @@ public class SpellChecker {
         return suggestedWords;
     }
 
+    /**
+     * The final String that list all possible words in dictionary that match
+     * the misspelled word
+     * @param wordToCheck
+     * @return
+     */
     public String allPossibleWordsMutations(String wordToCheck) {
         String listOfPossibleMutations = "";
 
-        // create the final of suggest words from each possible mutation
+        // create the final list of suggested words from each possible mutation
         ArrayList<String> finalList = checkForMissingLetter(wordToCheck);
         finalList.addAll(checkForAddedLetter(wordToCheck));
         finalList.addAll(checkForRevesedLetters(wordToCheck));
@@ -225,6 +210,11 @@ public class SpellChecker {
         return listOfPossibleMutations;
     }
 
+    /**
+     * Checks if the word is in the dictionary
+     * 
+     * @param word - word to search for
+     */
     public boolean isWordInDictionary(String word) {
         if (map.containsKey(word.toLowerCase().hashCode())) {
             ArrayList<String> list = map.get(word.toLowerCase().hashCode());
@@ -238,6 +228,12 @@ public class SpellChecker {
         return false;
     }
 
+    /**
+     * Removes any duplicates that may be in the final list of suggest words
+     * 
+     * @param list
+     * @return - updated list that only has one copy of each suggestion
+     */
     public ArrayList<String> removeDuplicates(ArrayList<String> list) {
         ArrayList<String> finalList = new ArrayList<String>();
         for (String words : list) {
